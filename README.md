@@ -22,7 +22,7 @@ The Global Entry Appointment Finder is a Python script that allows you to search
 4. Run the script with the desired command-line arguments:
 
    ```
-   poetry run python main.py --states state1 state2 --interval 0.25 --output ~/Desktop/available_locations.csv --enddate 12-31-2023
+   poetry run python main.py --states CA TX --interval 0.5 --output ~/Desktop/available_locations.csv --enddate 12-31-2023
    ```
 
    **Command-line Arguments:**
