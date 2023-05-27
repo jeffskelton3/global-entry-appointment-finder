@@ -5,11 +5,12 @@ import time
 import argparse
 import os
 import us
+import concurrent.futures
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='Global Entry Appointment Finder')
 valid_state_codes = list(map(lambda s: s.abbr, us.states.STATES))
-parser.add_argument('--states', required=True, nargs='+', type=str, help='List of two letter state codes to search')
+parser.add_argument('--states', required=True, nargs='+', type=str, help='List of two-letter state codes to search')
 parser.add_argument('--interval', required=False, type=int, default=.25, help='Interval between API calls in seconds')
 parser.add_argument('--output', required=True, type=str, help='Path to output CSV file')
 parser.add_argument('--enddate', required=False, type=str, default='', help='End date for search in MM-DD-YYYY format')
@@ -38,17 +39,14 @@ def make_api_request(url):
         print("An error occurred:", e)
 
 
-for state in args.states:
+def search_locations_for_state(state):
     if state not in valid_state_codes:
         print(f"Invalid state code: {state}")
         exit(1)
-
-available_locations = []
-
-for state in args.states:
+    available_locations = []
     current_date = now
-    print(f"=====BEGIN LOCATION SEARCH IN {state}======")
-    progress_bar = tqdm(total=(end_date - current_date).days + 1)
+    progress_bar = tqdm(total=(end_date - current_date).days + 1, desc=f"=Searching {state}",
+                        postfix='', bar_format='{desc}: {bar} {percentage:3.0f}%|{bar}')
     while current_date <= end_date:
         api_url = f"https://ttp.cbp.dhs.gov/schedulerapi/slots/asLocations?minimum=1&filterTimestampBy=on&timestamp={current_date}&serviceName=Global%20Entry"
         data = make_api_request(api_url)
@@ -70,14 +68,30 @@ for state in args.states:
         time.sleep(args.interval)
         progress_bar.update(1)
     progress_bar.close()
+    return available_locations
 
-if len(available_locations) > 0:
-    output_path = os.path.expanduser(args.output)
-    with open(output_path, 'w', newline='') as csvfile:
-        fieldnames = ['ID', 'Date', 'State', 'Name', 'Address', 'City', 'Zip', 'Phone']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(available_locations)
-    print(f"Available locations saved to: {output_path}")
-else:
-    print("No available locations found.")
+
+def main():
+    available_locations = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for state in args.states:
+            futures.append(executor.submit(search_locations_for_state, state))
+
+        for future in concurrent.futures.as_completed(futures):
+            available_locations.extend(future.result())
+
+    if len(available_locations) > 0:
+        output_path = os.path.expanduser(args.output)
+        with open(output_path, 'w', newline='') as csvfile:
+            fieldnames = ['ID', 'Date', 'State', 'Name', 'Address', 'City', 'Zip', 'Phone']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(available_locations)
+        print(f"Available locations saved to: {output_path}")
+    else:
+        print("No available locations found.")
+
+
+if __name__ == '__main__':
+    main()
