@@ -1,20 +1,60 @@
 # Global Entry Appointment Finder
 
-Solves a very specific need I have around finding an available [Global Entry](https://www.cbp.gov/travel/trusted-traveler-programs/global-entry) appointment in my state and the surrounding ones. The default UI is _really_ bad and the only hope of getting an appointment is if one gets cancelled, so I automated the act of checking for open slots.
+The Global Entry Appointment Finder is a Python script that allows you to search for available Global Entry appointment slots in specific states within a specified date range. It retrieves appointment availability data from the U.S. Customs and Border Protection (CBP) API and outputs the results to a CSV file.
 
-NOTE: this runs an API request in a loop. I've added a bit of a delay before the next request runs, but be aware you might get rate limited or even blocked if you run this too much. Use responsibly.
+## Prerequisites
 
-### Setup
+- Python 3.10 or above
+- Poetry package manager (install instructions: [Poetry Installation Guide](https://python-poetry.org/docs/#installation))
 
-Make sure you have poetry installed and are running python 3.10.x
+## Usage
 
-### Usage
+1. Clone the repository or download the script file (`main.py`) to your local machine.
 
-The script expects a list of two letter state codes to check for appointments in and the path to output your results to. For example, to check for appointments in California, Utah, and Arizona:
+2. Open a terminal and navigate to the project directory.
 
-`python -m main --states CA UT AZ --output=~/Desktop/results.csv`
+3. Install the project dependencies using Poetry:
 
-The script also accepts an optional `--interval` argument that specifies how long to wait between API requests. The default is 250 ms.
+   ```
+   poetry install
+   ```
 
+4. Run the script with the desired command-line arguments:
 
-Thats... pretty much it.
+   ```
+   poetry run python main.py --states state1 state2 --interval 0.25 --output ~/Desktop/available_locations.csv --enddate 12-31-2023
+   ```
+
+   **Command-line Arguments:**
+    - `--states` (required): Specify the states to search for available appointments. You can provide multiple state codes separated by spaces.
+    - `--interval` (optional): Specify the time interval (in seconds) between API requests. Default is 0.25 seconds.
+    - `--output` (required): Specify the output file path for saving the available locations. You can use Unix shorthand notation like `~/Desktop`.
+    - `--enddate` (optional): Specify the end date for the search in MM-DD-YYYY format. If not provided, it defaults to the end of the current year.
+
+5. The script will start searching for available appointment slots within the specified states and date range. It will display a progress bar indicating the search progress. Once the search is complete, it will save the available locations to the specified output file in CSV format.
+
+## Output
+
+The script outputs the available locations in CSV format. The CSV file contains the following columns:
+
+- `ID`: The ID of the location.
+- `Date`: The date of the available appointment slot.
+- `State`: The state code where the appointment is available.
+- `Name`: The name of the location.
+- `Address`: The address of the location.
+- `City`: The city of the location.
+- `Zip`: The ZIP code of the location.
+- `Phone`: The phone number of the location.
+
+## Notes
+
+- The script uses the U.S. Customs and Border Protection (CBP) API to retrieve appointment availability data. The availability and accuracy of the data depend on the API's reliability and updates from CBP. Please note that appointment availability may vary and cannot be guaranteed.
+- The script adheres to CBP's rate limits and includes a delay (`--interval`) between API requests to avoid overwhelming the API server. The default interval is 0.25 seconds, but you can adjust it as needed. Be mindful of the rate limits and considerate of the server resources.
+
+## License
+
+This script is licensed under the [MIT License](LICENSE).
+
+## Disclaimer
+
+This script is provided as-is, without any warranty or guarantee. Use it at your own risk. The authors are not responsible for any misuse, unauthorized access, or legal implications arising from the use of this script.
