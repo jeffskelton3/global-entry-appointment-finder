@@ -69,7 +69,7 @@ def main():
 
     if len(available_locations) > 0:
         output_path = os.path.expanduser(args.output)
-        with open(output_path, 'w', newline='') as csvfile:
+        with open(output_path, 'a', newline='') as csvfile:
             fieldnames = ['Date', 'State', 'Locations']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
