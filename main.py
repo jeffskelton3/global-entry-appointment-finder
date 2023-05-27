@@ -1,9 +1,15 @@
 import requests
 import datetime
 import time
+import argparse
+import us
 
+parser = argparse.ArgumentParser(description='Global Entry Appointment Finder')
+valid_state_codes = list(map(lambda s: s.abbr, us.states.STATES))
+parser.add_argument('--states', required=True, nargs='+', type=str)
+parser.add_argument('--interval', required=False, type=int, default=.25)
 
-states = ["CA", "UT", "AZ"]
+args = parser.parse_args()
 
 
 def make_api_request(url):
@@ -15,7 +21,12 @@ def make_api_request(url):
         print("An error occurred:", e)
 
 
-for state in states:
+for state in args.states:
+    if state not in valid_state_codes:
+        print(f"Invalid state code: {state}")
+        exit(1)
+
+for state in args.states:
     current_date = datetime.date.today()
     end_of_year = datetime.date(current_date.year, 12, 31)
     print(f"=====BEGIN LOCATION SEARCH IN {state}======")
@@ -29,4 +40,4 @@ for state in states:
             print(f"LOCATIONS: {names}")
             print("==========================================")
         current_date += datetime.timedelta(days=1)
-        time.sleep(.25)
+        time.sleep(args.interval)
