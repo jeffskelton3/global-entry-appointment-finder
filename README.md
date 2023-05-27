@@ -10,12 +10,11 @@ Make sure you have poetry installed and are running python 3.10.x
 
 ### Usage
 
-The script expects a list of two letter state codes to check for appointments in. You can pass them in as a space separated list. For example, to check for appointments in California, Utah, and Arizona:
+The script expects a list of two letter state codes to check for appointments in and the path to output your results to. For example, to check for appointments in California, Utah, and Arizona:
 
-`python -m main --states CA UT AZ`
+`python -m main --states CA UT AZ --output=~/Desktop/results.csv`
 
 The script also accepts an optional `--interval` argument that specifies how long to wait between API requests. The default is 250 ms.
-
 
 
 Thats... pretty much it.
