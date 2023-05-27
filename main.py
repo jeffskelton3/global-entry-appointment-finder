@@ -3,6 +3,7 @@ import datetime
 import time
 import argparse
 import us
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='Global Entry Appointment Finder')
 valid_state_codes = list(map(lambda s: s.abbr, us.states.STATES))
@@ -30,14 +31,18 @@ for state in args.states:
     current_date = datetime.date.today()
     end_of_year = datetime.date(current_date.year, 12, 31)
     print(f"=====BEGIN LOCATION SEARCH IN {state}======")
+    progress_bar = tqdm(total=(end_of_year - current_date).days + 1)
     while current_date <= end_of_year:
         api_url = f"https://ttp.cbp.dhs.gov/schedulerapi/slots/asLocations?minimum=1&filterTimestampBy=on&timestamp={current_date}&serviceName=Global%20Entry"
         data = make_api_request(api_url)
         locations = list(filter(lambda p: p["state"] == state, data))
         if len(locations) > 0:
-            names = list(map(lambda loc: f'NAME: {loc["name"]}, LOCATION: {loc["city"]}, {loc["state"]}', locations))
+            names = list(
+                map(lambda loc: f'NAME: {loc["name"]}, LOCATION: {loc["city"]}, {loc["state"]}', locations))
             print(f"APPOINTMENTS AVAILABLE ON {current_date}")
             print(f"LOCATIONS: {names}")
             print("==========================================")
         current_date += datetime.timedelta(days=1)
         time.sleep(args.interval)
+        progress_bar.update(1)
+    progress_bar.close()

@@ -8,6 +8,7 @@ authors = ["Jeff Skelton <jeff@jeffskelton.net>"]
 python = "^3.10"
 requests = "^2.31.0"
 us = "^2.0.2"
+tqdm = "^4.65.0"
 
 [tool.poetry.dev-dependencies]
 
