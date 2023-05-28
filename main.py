@@ -10,7 +10,6 @@ import us
 import concurrent.futures
 from tqdm import tqdm
 
-API_URL = f"https://ttp.cbp.dhs.gov/schedulerapi/slots/asLocations?minimum=1&filterTimestampBy=on&timestamp={current_date}&serviceName=Global%20Entry"
 valid_state_codes = list(map(lambda s: s.abbr, us.states.STATES))
 
 parser = argparse.ArgumentParser(description='Global Entry Appointment Finder')
@@ -34,6 +33,10 @@ if args.enddate:
         exit(1)
 
 
+def build_api_url(timestamp):
+    return f"https://ttp.cbp.dhs.gov/schedulerapi/slots/asLocations?minimum=1&filterTimestampBy=on&timestamp={timestamp}&serviceName=Global%20Entry"
+
+
 def make_api_request(url):
     try:
         response = requests.get(url)
@@ -52,7 +55,8 @@ def search_locations_for_state(state):
     progress_bar = tqdm(total=(end_date - current_date).days + 1, desc=f"=Searching {state}",
                         postfix='', bar_format='{desc}: {bar} {percentage:3.0f}%|{bar}')
     while current_date <= end_date:
-        data = make_api_request(API_URL)
+        api_url = build_api_url(current_date)
+        data = make_api_request(api_url)
         locations = list(filter(lambda p: p["state"] == state, data))
         if len(locations) > 0:
             for loc in locations:
