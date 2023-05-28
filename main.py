@@ -1,4 +1,6 @@
 import csv
+import json
+
 import requests
 import datetime
 import time
@@ -8,8 +10,10 @@ import us
 import concurrent.futures
 from tqdm import tqdm
 
-parser = argparse.ArgumentParser(description='Global Entry Appointment Finder')
+API_URL = f"https://ttp.cbp.dhs.gov/schedulerapi/slots/asLocations?minimum=1&filterTimestampBy=on&timestamp={current_date}&serviceName=Global%20Entry"
 valid_state_codes = list(map(lambda s: s.abbr, us.states.STATES))
+
+parser = argparse.ArgumentParser(description='Global Entry Appointment Finder')
 parser.add_argument('--states', required=True, nargs='+', type=str, help='List of two-letter state codes to search')
 parser.add_argument('--interval', required=False, type=int, default=.25, help='Interval between API calls in seconds')
 parser.add_argument('--output', required=True, type=str, help='Path to output CSV file')
@@ -48,8 +52,7 @@ def search_locations_for_state(state):
     progress_bar = tqdm(total=(end_date - current_date).days + 1, desc=f"=Searching {state}",
                         postfix='', bar_format='{desc}: {bar} {percentage:3.0f}%|{bar}')
     while current_date <= end_date:
-        api_url = f"https://ttp.cbp.dhs.gov/schedulerapi/slots/asLocations?minimum=1&filterTimestampBy=on&timestamp={current_date}&serviceName=Global%20Entry"
-        data = make_api_request(api_url)
+        data = make_api_request(API_URL)
         locations = list(filter(lambda p: p["state"] == state, data))
         if len(locations) > 0:
             for loc in locations:
@@ -88,6 +91,7 @@ def main():
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(available_locations)
+        print(json.dumps(available_locations, indent=4, sort_keys=True))
         print(f"Available locations saved to: {output_path}")
     else:
         print("No available locations found.")
